@@ -1,0 +1,42 @@
+// SPDX-License-Identifier: GPL-3.0
+
+//deployed address 0xfA7b8b5d23eC137f6520A467a7ADF0100DA580b0
+
+pragma solidity ^0.8.0;
+
+contract PercentageSplitter {
+    address public user1;
+    address public user2;
+    uint256 public user1Percentage;
+    uint256 public user2Percentage;
+    uint256 public productPrice;
+
+    event Transfer(address indexed _from, address indexed _to, uint256 _amount);
+
+    constructor(address _user1, address _user2, uint256 _user1Percentage, uint256 _user2Percentage,uint256 _productPrice) {
+        require(_user1 != address(0) && _user2 != address(0), "Invalid address");
+        require(_user1Percentage + _user2Percentage == 100, "Percentages should add up to 100");
+        require(_productPrice > 0,"Product price must be greater than 0");
+
+        user1 = _user1;
+        user2 = _user2;
+        user1Percentage = _user1Percentage;
+        user2Percentage = _user2Percentage;
+        productPrice = _productPrice;
+    }
+
+    function sendAndSplitEther() public payable {
+        uint256 amount = address(this).balance;
+        require(amount > 0, "Invalid amount");
+
+        uint256 amountToUser1 = (amount * user1Percentage) / 100;
+        uint256 amountToUser2 = (amount * user2Percentage) / 100;
+
+        payable(user1).transfer(amountToUser1);
+        emit Transfer(address(this), user1, amountToUser1);
+
+        payable(user2).transfer(amountToUser2);
+        emit Transfer(address(this), user2, amountToUser2);
+    }
+}
+
